@@ -20,6 +20,17 @@ int main() {
         //Render here
         glClear(GL_COLOR_BUFFER_BIT);
 
+        //WARNING: Legacy OpenGL code here: just for testing purposes!
+        glBegin(GL_TRIANGLES);
+
+        //NOTE: Vertices here can range in [-1, 1] for the edges of the screen (xy).
+        glVertex2f(-1, -1);
+        glVertex2f(0, 0.5f);
+        glVertex2f(0.5f, -0.5f);
+
+        glEnd();
+        //--- --- ---
+
         //Swap front and back buffers
         glfwSwapBuffers(window);
 
