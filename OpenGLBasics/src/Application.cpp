@@ -31,13 +31,31 @@ int main() {
 
     cout << "OpenGL Version: " << glGetString(GL_VERSION) << endl;
 
+    const int POSITION_COUNT = 6;
+    float positions[POSITION_COUNT] = {
+        -1,     -1,
+        0,      0.5f,
+        0.5f,   -0.5f
+    };
+
+    unsigned int bufferId;
+    glGenBuffers(1, &bufferId);
+    glBindBuffer(GL_ARRAY_BUFFER, bufferId); //This is the CURRENTLY-bound
+    glBufferData(GL_ARRAY_BUFFER, POSITION_COUNT * sizeof(float), &positions, GL_STATIC_DRAW); //NOTE: See docs.gl for OpenGL documentation!!
+
+    //This would UNBIND the current buffer.
+    //Binding is like "selecting" stuff in Photoshop. You need to select stuff before you can do anything with it.
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+
     //Loop until the user closes the window
     while (!glfwWindowShouldClose(window)) {
         //Render here
         glClear(GL_COLOR_BUFFER_BIT);
 
-        //WARNING: Legacy OpenGL code here: just for testing purposes!
-        drawLegacyTriangle();
+        //MODERN OpenGL! Issuing a draw call!
+        //2 ways to draw:
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        //glDrawElements(GL_TRIANGLES, 3, ...); //REQUIRES an index buffer, which we didn't do yet!
 
         //Swap front and back buffers
         glfwSwapBuffers(window);
