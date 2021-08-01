@@ -42,8 +42,10 @@ int main() {
 
     unsigned int bufferId;
     glGenBuffers(1, &bufferId);
-    glBufferData(GL_ARRAY_BUFFER, POSITION_COUNT * sizeof(float), positions, GL_STATIC_DRAW); //NOTE: See docs.gl for OpenGL documentation!!
-    glBindBuffer(GL_ARRAY_BUFFER, bufferId); //This is the CURRENTLY-bound
+    glBindBuffer(GL_ARRAY_BUFFER, bufferId);
+    
+    //NOTE: glBindBuffer(...) MUST be called in order for this next line to WORK!
+    glBufferData(GL_ARRAY_BUFFER, POSITION_COUNT * sizeof(float), positions, GL_STATIC_DRAW);
 
     //Call this PER vertex attribute
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), NULL);
