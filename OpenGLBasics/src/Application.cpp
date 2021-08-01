@@ -42,11 +42,15 @@ int main() {
 
     cout << "OpenGL Version: " << glGetString(GL_VERSION) << endl;
 
-    const int POSITION_COUNT = 6;
+    const int POSITION_COUNT = 12;
     float positions[POSITION_COUNT] = {
-        -1,     -1,
-        0,      0.5f,
-        0.5f,   -0.5f
+        -0.5f,  -0.5f,
+        0.5f,   0.5f,
+        0.5f,   -0.5f,
+
+        0.5f,   0.5f,
+        -0.5f,  -0.5f,
+        -0.5f,  0.5f
     };
 
     unsigned int bufferId;
@@ -80,7 +84,7 @@ int main() {
 
         //MODERN OpenGL! Issuing a draw call!
         //2 ways to draw:
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLES, 0, POSITION_COUNT / 2);
         //glDrawElements(GL_TRIANGLES, 3, ...); //REQUIRES an index buffer, which we didn't do yet!
 
         //Swap front and back buffers
