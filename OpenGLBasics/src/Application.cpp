@@ -53,6 +53,27 @@ int main() {
     //Binding is like "selecting" stuff in Photoshop. You need to select stuff before you can do anything with it.
     //glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+    string vertexShader =
+        "#version 330 core\n" //GLSL version 330, core means it won't let us use any deprecated functions
+        "\n"
+        "layout(location = 0) in vec4 position;\n"
+        "\n"
+        "void main() {\n"
+        "   gl_Position = position;\n"
+        "}\n";
+
+    string fragmentShader =
+        "#version 330 core\n" //GLSL version 330, core means it won't let us use any deprecated functions
+        "\n"
+        "layout(location = 0) out vec4 color;\n"
+        "\n"
+        "void main() {\n"
+        "   color = vec4(1, 0, 0, 1);\n"
+        "}\n";
+
+    unsigned int shader = createShader(vertexShader, fragmentShader);
+    glUseProgram(shader);
+
     //Loop until the user closes the window
     while (!glfwWindowShouldClose(window)) {
         //Render here
@@ -69,6 +90,8 @@ int main() {
         //Poll for and process events
         glfwPollEvents();
     }
+
+    glDeleteProgram(shader);
 
     glfwTerminate();
     return 0;
