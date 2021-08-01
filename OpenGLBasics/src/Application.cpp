@@ -42,15 +42,18 @@ int main() {
 
     cout << "OpenGL Version: " << glGetString(GL_VERSION) << endl;
 
-    const int POSITION_COUNT = 12;
+    const int POSITION_COUNT = 8;
     float positions[POSITION_COUNT] = {
-        -0.5f,  -0.5f,
-        0.5f,   0.5f,
         0.5f,   -0.5f,
-
-        0.5f,   0.5f,
         -0.5f,  -0.5f,
+        0.5f,   0.5f,
         -0.5f,  0.5f
+    };
+
+    const int INDEX_COUNT = 6;
+    unsigned int indices[INDEX_COUNT] = {
+        0, 1, 2,
+        3, 2, 1
     };
 
     unsigned int bufferId;
@@ -63,6 +66,11 @@ int main() {
     //Call this PER vertex attribute
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), NULL);
     glEnableVertexAttribArray(0);
+
+    unsigned int ibo;
+    glGenBuffers(1, &ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, INDEX_COUNT * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
     //This would UNBIND the current buffer.
     //Binding is like "selecting" stuff in Photoshop. You need to select stuff before you can do anything with it.
@@ -84,8 +92,7 @@ int main() {
 
         //MODERN OpenGL! Issuing a draw call!
         //2 ways to draw:
-        glDrawArrays(GL_TRIANGLES, 0, POSITION_COUNT / 2);
-        //glDrawElements(GL_TRIANGLES, 3, ...); //REQUIRES an index buffer, which we didn't do yet!
+        glDrawElements(GL_TRIANGLES, INDEX_COUNT, GL_UNSIGNED_INT, NULL); //REQUIRES an index buffer, and NULL for using the already-bound GL_ELEMENT_ARRAY_BUFFER slot.
 
         //Swap front and back buffers
         glfwSwapBuffers(window);
