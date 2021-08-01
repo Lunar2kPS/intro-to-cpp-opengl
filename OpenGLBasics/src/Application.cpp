@@ -2,14 +2,23 @@
 #include <GLFW/glfw3.h>
 
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
 
 using namespace std;
+
+struct ShaderProgramSource {
+    string vertexSource;
+    string fragmentSource;
+};
 
 /// <summary>
 /// An example of drawing a triangle using legacy OpenGL 1.0, which didn't require glew.
 /// </summary>
 void drawLegacyTriangle();
 
+ShaderProgramSource parseShader(const string& filePath);
 unsigned int createShader(string& vertexShader, string& fragmentShader);
 
 int main() {
@@ -55,25 +64,13 @@ int main() {
     //Binding is like "selecting" stuff in Photoshop. You need to select stuff before you can do anything with it.
     //glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    string vertexShader =
-        "#version 330 core\n" //GLSL version 330, core means it won't let us use any deprecated functions
-        "\n"
-        "layout(location = 0) in vec4 position;\n"
-        "\n"
-        "void main() {\n"
-        "   gl_Position = position;\n"
-        "}\n";
+    ShaderProgramSource source = parseShader("res/shaders/Basic.glsl");
+    cout << "VERTEX SHADER:" << endl;
+    cout << source.vertexSource << endl;
+    cout << "FRAGMENT SHADER:" << endl;
+    cout << source.fragmentSource << endl;
 
-    string fragmentShader =
-        "#version 330 core\n" //GLSL version 330, core means it won't let us use any deprecated functions
-        "\n"
-        "layout(location = 0) out vec4 color;\n"
-        "\n"
-        "void main() {\n"
-        "   color = vec4(1, 0, 0, 1);\n"
-        "}\n";
-
-    unsigned int shader = createShader(vertexShader, fragmentShader);
+    unsigned int shader = createShader(source.vertexSource, source.fragmentSource);
     glUseProgram(shader);
 
     //Loop until the user closes the window
@@ -108,6 +105,35 @@ void drawLegacyTriangle() {
     glVertex2f(0.5f, -0.5f);
 
     glEnd();
+}
+
+ShaderProgramSource parseShader(const string& filePath) {
+    enum class ShaderType {
+        NONE = -1,
+        VERTEX = 0,
+        FRAGMENT = 1
+    };
+
+    ifstream stream = ifstream(filePath);
+    string line;
+    stringstream ss[2];
+    ShaderType type = ShaderType::NONE;
+
+    while (getline(stream, line)) {
+        if (line.find("#shader") != string::npos) {
+            if (line.find("vertex") != string::npos)
+                type = ShaderType::VERTEX;
+            else if (line.find("fragment") != string::npos)
+                type = ShaderType::FRAGMENT;
+        } else {
+            ss[(int) type] << line << '\n';
+        }
+    }
+
+    return ShaderProgramSource {
+        ss[(int) ShaderType::VERTEX].str(),
+        ss[(int) ShaderType::FRAGMENT].str()
+    };
 }
 
 unsigned int compileShader(unsigned int type, string& source) {
