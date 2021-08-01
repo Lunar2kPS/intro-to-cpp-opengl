@@ -40,8 +40,12 @@ int main() {
 
     unsigned int bufferId;
     glGenBuffers(1, &bufferId);
+    glBufferData(GL_ARRAY_BUFFER, POSITION_COUNT * sizeof(float), positions, GL_STATIC_DRAW); //NOTE: See docs.gl for OpenGL documentation!!
     glBindBuffer(GL_ARRAY_BUFFER, bufferId); //This is the CURRENTLY-bound
-    glBufferData(GL_ARRAY_BUFFER, POSITION_COUNT * sizeof(float), &positions, GL_STATIC_DRAW); //NOTE: See docs.gl for OpenGL documentation!!
+
+    //Call this PER vertex attribute
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), NULL);
+    glEnableVertexAttribArray(0);
 
     //This would UNBIND the current buffer.
     //Binding is like "selecting" stuff in Photoshop. You need to select stuff before you can do anything with it.
