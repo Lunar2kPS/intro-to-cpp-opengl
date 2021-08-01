@@ -6,6 +6,8 @@ Huge thanks to [TheCherno's](https://www.youtube.com/channel/UCQ-W1KE9EYfdxhL6S4
 
 ## Other Resources
 
+- [docs.GL](http://docs.gl)
+  - _OpenGL API Documentation_
 - [The Missing Guide to Modern Graphics APIs](https://blog.mecheye.net/2020/06/modern-graphics-apis-1-intro/)
 - [SDL](http://libsdl.org/)
   - _"A cross-platform development library designed to provide low level access to audio, keyboard, mouse, joystick, and graphics hardware via OpenGL and Direct3D."_
