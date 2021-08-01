@@ -10,6 +10,8 @@ using namespace std;
 /// </summary>
 void drawLegacyTriangle();
 
+unsigned int createShader(string& vertexShader, string& fragmentShader);
+
 int main() {
     //Initialize the library
     if (!glfwInit())
@@ -81,4 +83,58 @@ void drawLegacyTriangle() {
     glVertex2f(0.5f, -0.5f);
 
     glEnd();
+}
+
+unsigned int compileShader(unsigned int type, string& source) {
+    unsigned int id = glCreateShader(type);
+    const char* src = source.c_str();
+
+    glShaderSource(id, 1, &src, nullptr);
+    glCompileShader(id);
+
+    //TODO: Error handling for this shader
+    int result;
+
+    //NOTE: iv means int, vector.
+    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+    if (result == GL_FALSE) {
+        int length;
+        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+
+        //Can't do this in C++, ewww... so..
+        //char message[length];
+
+        //Do THIS instead! >:)
+        //Allocate on the STACK still!! YAY TheCherno!!
+        char* message = (char*) alloca(length * sizeof(char));
+
+        glGetShaderInfoLog(id, length, &length, message);
+        cout << "Failed to compile a shader!" << endl;
+        cout << message << endl;
+
+        glDeleteShader(id);
+        return 0;
+    }
+
+    return id;
+}
+
+unsigned int createShader(string& vertexShader, string& fragmentShader) {
+    unsigned int program = glCreateProgram();
+
+    unsigned int vs = compileShader(GL_VERTEX_SHADER, vertexShader);
+    unsigned int fs = compileShader(GL_FRAGMENT_SHADER, fragmentShader);
+
+    glAttachShader(program, vs);
+    glAttachShader(program, fs);
+
+    glLinkProgram(program);
+    glValidateProgram(program);
+
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+
+    //TODO: Detach shaders after compiling? Maybe covered in a later TheCherno episode (after episode 7)
+
+    return program;
 }
