@@ -13,6 +13,17 @@ struct ShaderProgramSource {
     string fragmentSource;
 };
 
+void glClearError() {
+    while (glGetError() != GL_NO_ERROR);
+}
+
+void glCheckError() {
+    GLenum error;
+    while ((error = glGetError()) != GL_NO_ERROR) {
+        cout << "[OpenGL Error] (" << error << ")" << endl;
+    }
+}
+
 /// <summary>
 /// An example of drawing a triangle using legacy OpenGL 1.0, which didn't require glew.
 /// </summary>
@@ -90,9 +101,11 @@ int main() {
         //Render here
         glClear(GL_COLOR_BUFFER_BIT);
 
+        glClearError();
         //MODERN OpenGL! Issuing a draw call!
         //2 ways to draw:
-        glDrawElements(GL_TRIANGLES, INDEX_COUNT, GL_UNSIGNED_INT, NULL); //REQUIRES an index buffer, and NULL for using the already-bound GL_ELEMENT_ARRAY_BUFFER slot.
+        glDrawElements(GL_TRIANGLES, INDEX_COUNT, GL_INT, NULL); //REQUIRES an index buffer, and NULL for using the already-bound GL_ELEMENT_ARRAY_BUFFER slot.
+        glCheckError();
 
         //Swap front and back buffers
         glfwSwapBuffers(window);
