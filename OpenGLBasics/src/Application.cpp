@@ -55,6 +55,9 @@ int main() {
     //Make the window's context current
     glfwMakeContextCurrent(window);
 
+    //Important for making our framerate steady.. (VSync?)
+    glfwSwapInterval(1);
+
     //NOTE: This requires a valid rendering context first
     if (glewInit() != GLEW_OK)
         return -1;
@@ -104,14 +107,31 @@ int main() {
     unsigned int shader = createShader(source.vertexSource, source.fragmentSource);
     GLCALL(glUseProgram(shader));
 
+    //Demonstrating how to retrieve and set a shader uniform variable!
+    GLCALL(int uniColorLocation = glGetUniformLocation(shader, "uniColor"));
+
+    //This would happen if there was no "uniColor" uniform, OR it was stripped out of the shader since it was unused.
+    ASSERT(uniColorLocation != -1);
+
+    GLCALL(glUniform4f(uniColorLocation, 0.2f, 0.6f, 0.8f, 1));
+    float r = 0;
+    float increment = 0.05f;
+
     //Loop until the user closes the window
     while (!glfwWindowShouldClose(window)) {
         //Render here
         GLCALL(glClear(GL_COLOR_BUFFER_BIT));
 
+        GLCALL(glUniform4f(uniColorLocation, r, 0.6f, 0.8f, 1));
+
         //MODERN OpenGL! Issuing a draw call!
-        //2 ways to draw:
         GLCALL(glDrawElements(GL_TRIANGLES, INDEX_COUNT, GL_UNSIGNED_INT, NULL)); //REQUIRES an index buffer, and NULL for using the already-bound GL_ELEMENT_ARRAY_BUFFER slot.
+
+        if (r > 1)
+            increment = -0.05f;
+        else if (r < 0)
+            increment = 0.05f;
+        r += increment;
 
         //Swap front and back buffers
         glfwSwapBuffers(window);

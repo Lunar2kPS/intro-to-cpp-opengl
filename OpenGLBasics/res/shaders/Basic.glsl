@@ -10,6 +10,8 @@ void main() {
 #version 330 core //GLSL version 330, core means it won't let us use any deprecated functions
 layout(location = 0) out vec4 color;
 
+uniform vec4 uniColor;
+
 void main() {
-   color = vec4(1, 0, 0, 1);
+   color = uniColor;
 };
