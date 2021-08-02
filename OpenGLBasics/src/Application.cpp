@@ -10,6 +10,9 @@ using namespace std;
 
 //NOTE: Compiler instrinsic!! __debugbreak() is specific to MSVC!
 #define ASSERT(x) if (!(x)) __debugbreak();
+#define GLCall(x) glClearError();\
+    x;\
+    ASSERT(glLogCall())
 
 struct ShaderProgramSource {
     string vertexSource;
@@ -106,11 +109,9 @@ int main() {
         //Render here
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glClearError();
         //MODERN OpenGL! Issuing a draw call!
         //2 ways to draw:
-        glDrawElements(GL_TRIANGLES, INDEX_COUNT, GL_INT, NULL); //REQUIRES an index buffer, and NULL for using the already-bound GL_ELEMENT_ARRAY_BUFFER slot.
-        ASSERT(glLogCall());
+        GLCall(glDrawElements(GL_TRIANGLES, INDEX_COUNT, GL_INT, NULL)); //REQUIRES an index buffer, and NULL for using the already-bound GL_ELEMENT_ARRAY_BUFFER slot.
 
         //Swap front and back buffers
         glfwSwapBuffers(window);
