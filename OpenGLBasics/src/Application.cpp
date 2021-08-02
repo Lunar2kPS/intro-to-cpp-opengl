@@ -76,20 +76,20 @@ int main() {
     };
 
     unsigned int bufferId;
-    glGenBuffers(1, &bufferId);
-    glBindBuffer(GL_ARRAY_BUFFER, bufferId);
+    GLCall(glGenBuffers(1, &bufferId));
+    GLCall(glBindBuffer(GL_ARRAY_BUFFER, bufferId));
     
     //NOTE: glBindBuffer(...) MUST be called in order for this next line to WORK!
-    glBufferData(GL_ARRAY_BUFFER, POSITION_COUNT * sizeof(float), positions, GL_STATIC_DRAW);
+    GLCall(glBufferData(GL_ARRAY_BUFFER, POSITION_COUNT * sizeof(float), positions, GL_STATIC_DRAW));
 
     //Call this PER vertex attribute
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), NULL);
-    glEnableVertexAttribArray(0);
+    GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), NULL));
+    GLCall(glEnableVertexAttribArray(0));
 
     unsigned int ibo;
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, INDEX_COUNT * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    GLCall(glGenBuffers(1, &ibo));
+    GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+    GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, INDEX_COUNT * sizeof(unsigned int), indices, GL_STATIC_DRAW));
 
     //This would UNBIND the current buffer.
     //Binding is like "selecting" stuff in Photoshop. You need to select stuff before you can do anything with it.
@@ -107,11 +107,11 @@ int main() {
     //Loop until the user closes the window
     while (!glfwWindowShouldClose(window)) {
         //Render here
-        glClear(GL_COLOR_BUFFER_BIT);
+        GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
         //MODERN OpenGL! Issuing a draw call!
         //2 ways to draw:
-        GLCall(glDrawElements(GL_TRIANGLES, INDEX_COUNT, GL_INT, NULL)); //REQUIRES an index buffer, and NULL for using the already-bound GL_ELEMENT_ARRAY_BUFFER slot.
+        GLCall(glDrawElements(GL_TRIANGLES, INDEX_COUNT, GL_UNSIGNED_INT, NULL)); //REQUIRES an index buffer, and NULL for using the already-bound GL_ELEMENT_ARRAY_BUFFER slot.
 
         //Swap front and back buffers
         glfwSwapBuffers(window);
@@ -120,7 +120,7 @@ int main() {
         glfwPollEvents();
     }
 
-    glDeleteProgram(shader);
+    GLCall(glDeleteProgram(shader));
 
     glfwTerminate();
     return 0;
@@ -170,17 +170,17 @@ unsigned int compileShader(unsigned int type, string& source) {
     unsigned int id = glCreateShader(type);
     const char* src = source.c_str();
 
-    glShaderSource(id, 1, &src, nullptr);
-    glCompileShader(id);
+    GLCall(glShaderSource(id, 1, &src, nullptr));
+    GLCall(glCompileShader(id));
 
     //TODO: Error handling for this shader
     int result;
 
     //NOTE: iv means int, vector.
-    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+    GLCall(glGetShaderiv(id, GL_COMPILE_STATUS, &result));
     if (result == GL_FALSE) {
         int length;
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+        GLCall(glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length));
 
         //Can't do this in C++, ewww... so..
         //char message[length];
@@ -189,11 +189,11 @@ unsigned int compileShader(unsigned int type, string& source) {
         //Allocate on the STACK still!! YAY TheCherno!!
         char* message = (char*) alloca(length * sizeof(char));
 
-        glGetShaderInfoLog(id, length, &length, message);
+        GLCall(glGetShaderInfoLog(id, length, &length, message));
         cout << "Failed to compile a shader!" << endl;
         cout << message << endl;
 
-        glDeleteShader(id);
+        GLCall(glDeleteShader(id));
         return 0;
     }
 
@@ -206,14 +206,14 @@ unsigned int createShader(string& vertexShader, string& fragmentShader) {
     unsigned int vs = compileShader(GL_VERTEX_SHADER, vertexShader);
     unsigned int fs = compileShader(GL_FRAGMENT_SHADER, fragmentShader);
 
-    glAttachShader(program, vs);
-    glAttachShader(program, fs);
+    GLCall(glAttachShader(program, vs));
+    GLCall(glAttachShader(program, fs));
 
-    glLinkProgram(program);
-    glValidateProgram(program);
+    GLCall(glLinkProgram(program));
+    GLCall(glValidateProgram(program));
 
-    glDeleteShader(vs);
-    glDeleteShader(fs);
+    GLCall(glDeleteShader(vs));
+    GLCall(glDeleteShader(fs));
 
     //TODO: Detach shaders after compiling? Maybe covered in a later TheCherno episode (after episode 7)
 
