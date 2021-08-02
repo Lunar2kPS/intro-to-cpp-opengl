@@ -8,10 +8,29 @@
 
 using namespace std;
 
+//NOTE: Compiler instrinsic!! __debugbreak() is specific to MSVC!
+#define ASSERT(x) if (!(x)) __debugbreak();
+#define GLCALL(x) glClearError();\
+    x;\
+    ASSERT(glLogCall(#x, __FILE__, __LINE__))
+
 struct ShaderProgramSource {
     string vertexSource;
     string fragmentSource;
 };
+
+void glClearError() {
+    while (glGetError() != GL_NO_ERROR);
+}
+
+bool glLogCall(const char* function, const char* file, int line) {
+    GLenum error;
+    while ((error = glGetError()) != GL_NO_ERROR) {
+        cout << "[OpenGL Error] (" << error << "):\n" << function << "\n" << file << ":" << line << endl;
+        return false;
+    }
+    return true;
+}
 
 /// <summary>
 /// An example of drawing a triangle using legacy OpenGL 1.0, which didn't require glew.
@@ -57,20 +76,20 @@ int main() {
     };
 
     unsigned int bufferId;
-    glGenBuffers(1, &bufferId);
-    glBindBuffer(GL_ARRAY_BUFFER, bufferId);
+    GLCALL(glGenBuffers(1, &bufferId));
+    GLCALL(glBindBuffer(GL_ARRAY_BUFFER, bufferId));
     
     //NOTE: glBindBuffer(...) MUST be called in order for this next line to WORK!
-    glBufferData(GL_ARRAY_BUFFER, POSITION_COUNT * sizeof(float), positions, GL_STATIC_DRAW);
+    GLCALL(glBufferData(GL_ARRAY_BUFFER, POSITION_COUNT * sizeof(float), positions, GL_STATIC_DRAW));
 
     //Call this PER vertex attribute
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), NULL);
-    glEnableVertexAttribArray(0);
+    GLCALL(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), NULL));
+    GLCALL(glEnableVertexAttribArray(0));
 
     unsigned int ibo;
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, INDEX_COUNT * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    GLCALL(glGenBuffers(1, &ibo));
+    GLCALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+    GLCALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, INDEX_COUNT * sizeof(unsigned int), indices, GL_STATIC_DRAW));
 
     //This would UNBIND the current buffer.
     //Binding is like "selecting" stuff in Photoshop. You need to select stuff before you can do anything with it.
@@ -83,16 +102,16 @@ int main() {
     cout << source.fragmentSource << endl;
 
     unsigned int shader = createShader(source.vertexSource, source.fragmentSource);
-    glUseProgram(shader);
+    GLCALL(glUseProgram(shader));
 
     //Loop until the user closes the window
     while (!glfwWindowShouldClose(window)) {
         //Render here
-        glClear(GL_COLOR_BUFFER_BIT);
+        GLCALL(glClear(GL_COLOR_BUFFER_BIT));
 
         //MODERN OpenGL! Issuing a draw call!
         //2 ways to draw:
-        glDrawElements(GL_TRIANGLES, INDEX_COUNT, GL_UNSIGNED_INT, NULL); //REQUIRES an index buffer, and NULL for using the already-bound GL_ELEMENT_ARRAY_BUFFER slot.
+        GLCALL(glDrawElements(GL_TRIANGLES, INDEX_COUNT, GL_UNSIGNED_INT, NULL)); //REQUIRES an index buffer, and NULL for using the already-bound GL_ELEMENT_ARRAY_BUFFER slot.
 
         //Swap front and back buffers
         glfwSwapBuffers(window);
@@ -101,7 +120,7 @@ int main() {
         glfwPollEvents();
     }
 
-    glDeleteProgram(shader);
+    GLCALL(glDeleteProgram(shader));
 
     glfwTerminate();
     return 0;
@@ -151,17 +170,17 @@ unsigned int compileShader(unsigned int type, string& source) {
     unsigned int id = glCreateShader(type);
     const char* src = source.c_str();
 
-    glShaderSource(id, 1, &src, nullptr);
-    glCompileShader(id);
+    GLCALL(glShaderSource(id, 1, &src, nullptr));
+    GLCALL(glCompileShader(id));
 
     //TODO: Error handling for this shader
     int result;
 
     //NOTE: iv means int, vector.
-    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+    GLCALL(glGetShaderiv(id, GL_COMPILE_STATUS, &result));
     if (result == GL_FALSE) {
         int length;
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+        GLCALL(glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length));
 
         //Can't do this in C++, ewww... so..
         //char message[length];
@@ -170,11 +189,11 @@ unsigned int compileShader(unsigned int type, string& source) {
         //Allocate on the STACK still!! YAY TheCherno!!
         char* message = (char*) alloca(length * sizeof(char));
 
-        glGetShaderInfoLog(id, length, &length, message);
+        GLCALL(glGetShaderInfoLog(id, length, &length, message));
         cout << "Failed to compile a shader!" << endl;
         cout << message << endl;
 
-        glDeleteShader(id);
+        GLCALL(glDeleteShader(id));
         return 0;
     }
 
@@ -187,14 +206,14 @@ unsigned int createShader(string& vertexShader, string& fragmentShader) {
     unsigned int vs = compileShader(GL_VERTEX_SHADER, vertexShader);
     unsigned int fs = compileShader(GL_FRAGMENT_SHADER, fragmentShader);
 
-    glAttachShader(program, vs);
-    glAttachShader(program, fs);
+    GLCALL(glAttachShader(program, vs));
+    GLCALL(glAttachShader(program, fs));
 
-    glLinkProgram(program);
-    glValidateProgram(program);
+    GLCALL(glLinkProgram(program));
+    GLCALL(glValidateProgram(program));
 
-    glDeleteShader(vs);
-    glDeleteShader(fs);
+    GLCALL(glDeleteShader(vs));
+    GLCALL(glDeleteShader(fs));
 
     //TODO: Detach shaders after compiling? Maybe covered in a later TheCherno episode (after episode 7)
 
