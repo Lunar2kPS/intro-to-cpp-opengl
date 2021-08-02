@@ -12,7 +12,7 @@ using namespace std;
 #define ASSERT(x) if (!(x)) __debugbreak();
 #define GLCall(x) glClearError();\
     x;\
-    ASSERT(glLogCall())
+    ASSERT(glLogCall(#x, __FILE__, __LINE__))
 
 struct ShaderProgramSource {
     string vertexSource;
@@ -23,10 +23,10 @@ void glClearError() {
     while (glGetError() != GL_NO_ERROR);
 }
 
-bool glLogCall() {
+bool glLogCall(const char* function, const char* file, int line) {
     GLenum error;
     while ((error = glGetError()) != GL_NO_ERROR) {
-        cout << "[OpenGL Error] (" << error << ")" << endl;
+        cout << "[OpenGL Error] (" << error << "):\n" << function << "\n" << file << ":" << line << endl;
         return false;
     }
     return true;
