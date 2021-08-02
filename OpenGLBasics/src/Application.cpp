@@ -8,6 +8,9 @@
 
 using namespace std;
 
+//NOTE: Compiler instrinsic!! __debugbreak() is specific to MSVC!
+#define ASSERT(x) if (!(x)) __debugbreak();
+
 struct ShaderProgramSource {
     string vertexSource;
     string fragmentSource;
@@ -17,11 +20,13 @@ void glClearError() {
     while (glGetError() != GL_NO_ERROR);
 }
 
-void glCheckError() {
+bool glLogCall() {
     GLenum error;
     while ((error = glGetError()) != GL_NO_ERROR) {
         cout << "[OpenGL Error] (" << error << ")" << endl;
+        return false;
     }
+    return true;
 }
 
 /// <summary>
@@ -105,7 +110,7 @@ int main() {
         //MODERN OpenGL! Issuing a draw call!
         //2 ways to draw:
         glDrawElements(GL_TRIANGLES, INDEX_COUNT, GL_INT, NULL); //REQUIRES an index buffer, and NULL for using the already-bound GL_ELEMENT_ARRAY_BUFFER slot.
-        glCheckError();
+        ASSERT(glLogCall());
 
         //Swap front and back buffers
         glfwSwapBuffers(window);
