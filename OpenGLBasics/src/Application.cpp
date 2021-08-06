@@ -1,36 +1,21 @@
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
 
-using namespace std;
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
-//NOTE: Compiler instrinsic!! __debugbreak() is specific to MSVC!
-#define ASSERT(x) if (!(x)) __debugbreak();
-#define GLCALL(x) glClearError();\
-    x;\
-    ASSERT(glLogCall(#x, __FILE__, __LINE__))
+#include "Renderer.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
+
+using namespace std;
 
 struct ShaderProgramSource {
     string vertexSource;
     string fragmentSource;
 };
-
-void glClearError() {
-    while (glGetError() != GL_NO_ERROR);
-}
-
-bool glLogCall(const char* function, const char* file, int line) {
-    GLenum error;
-    while ((error = glGetError()) != GL_NO_ERROR) {
-        cout << "[OpenGL Error] (" << error << "):\n" << function << "\n" << file << ":" << line << endl;
-        return false;
-    }
-    return true;
-}
 
 /// <summary>
 /// An example of drawing a triangle using legacy OpenGL 1.0, which didn't require glew.
@@ -91,28 +76,20 @@ int main() {
         3, 2, 1
     };
 
-    //vao = Vertex Arary Object
+    //vao = Vertex Array Object
     //Creating our VAO is required in OpenGL Core context, since the default is invalid, as opposed to a valid default in OpenGL Compatibility context.
     unsigned int vao;
     GLCALL(glGenVertexArrays(1, &vao));
     GLCALL(glBindVertexArray(vao));
 
     //vbo = Vertex Buffer Object
-    unsigned int vbo;
-    GLCALL(glGenBuffers(1, &vbo));
-    GLCALL(glBindBuffer(GL_ARRAY_BUFFER, vbo));
-    
-    //NOTE: glBindBuffer(...) MUST be called in order for this next line to WORK!
-    GLCALL(glBufferData(GL_ARRAY_BUFFER, POSITION_COUNT * sizeof(float), positions, GL_STATIC_DRAW));
+    VertexBuffer vb = VertexBuffer(positions, POSITION_COUNT * sizeof(float));
 
     //Call this PER vertex attribute
     GLCALL(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), NULL));
     GLCALL(glEnableVertexAttribArray(0));
 
-    unsigned int ibo;
-    GLCALL(glGenBuffers(1, &ibo));
-    GLCALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
-    GLCALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, INDEX_COUNT * sizeof(unsigned int), indices, GL_STATIC_DRAW));
+    IndexBuffer ib = IndexBuffer(indices, INDEX_COUNT);
 
     //This would UNBIND the current buffer.
     //Binding is like "selecting" stuff in Photoshop. You need to select stuff before you can do anything with it.
@@ -153,7 +130,7 @@ int main() {
         GLCALL(glUniform4f(uniColorLocation, r, 0.6f, 0.8f, 1));
 
         GLCALL(glBindVertexArray(vao));
-        GLCALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+        ib.bind();
 
         //MODERN OpenGL! Issuing a draw call!
         GLCALL(glDrawElements(GL_TRIANGLES, INDEX_COUNT, GL_UNSIGNED_INT, NULL)); //REQUIRES an index buffer, and NULL for using the already-bound GL_ELEMENT_ARRAY_BUFFER slot.
