@@ -45,6 +45,19 @@ int main() {
     if (!glfwInit())
         return -1;
 
+    //OpenGL 3.3 specified below:
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //As opposed to GLFW_OPENGL_COMPAT_PROFILE
+
+    //NOTE: See the following for OpenGL Core vs. Compatibility context:
+    //  https://www.reddit.com/r/opengl/comments/aln1jt/what_is_difference_between_core_profile_and/
+    //  https://www.khronos.org/opengl/wiki/OpenGL_Context
+
+    //The compatibility OpenGL profile makes Vertex Array Object (VAO) object 0 a DEFAULT OBJECT!
+    //The core OpenGL profile makes Vertex Array Object (VAO) object 0 NOT AN OBJECT AT ALL!
+    //      In core, you would need to create & bind one first, or else you'll receive OpenGL error 1282 (invalid operation) for glEnableVertexAttribArray(...).
+
     //Create a windowed mode window and its OpenGL context
     GLFWwindow* window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
     if (window == NULL) {
@@ -77,6 +90,13 @@ int main() {
         0, 1, 2,
         3, 2, 1
     };
+
+    //vao = vertex array object
+    unsigned int vao;
+
+    //Creating our VAO is required in OpenGL Core context, since the default is invalid, as opposed to a valid default in OpenGL Compatibility context.
+    GLCALL(glGenVertexArrays(1, &vao));
+    GLCALL(glBindVertexArray(vao));
 
     unsigned int bufferId;
     GLCALL(glGenBuffers(1, &bufferId));
