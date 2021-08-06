@@ -45,7 +45,7 @@ int main() {
     if (!glfwInit())
         return -1;
 
-    //OpenGL 3.3 specified below:
+    //OpenGL 3.3, Core context specified below:
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //As opposed to GLFW_OPENGL_COMPAT_PROFILE
@@ -91,16 +91,16 @@ int main() {
         3, 2, 1
     };
 
-    //vao = vertex array object
-    unsigned int vao;
-
+    //vao = Vertex Arary Object
     //Creating our VAO is required in OpenGL Core context, since the default is invalid, as opposed to a valid default in OpenGL Compatibility context.
+    unsigned int vao;
     GLCALL(glGenVertexArrays(1, &vao));
     GLCALL(glBindVertexArray(vao));
 
-    unsigned int bufferId;
-    GLCALL(glGenBuffers(1, &bufferId));
-    GLCALL(glBindBuffer(GL_ARRAY_BUFFER, bufferId));
+    //vbo = Vertex Buffer Object
+    unsigned int vbo;
+    GLCALL(glGenBuffers(1, &vbo));
+    GLCALL(glBindBuffer(GL_ARRAY_BUFFER, vbo));
     
     //NOTE: glBindBuffer(...) MUST be called in order for this next line to WORK!
     GLCALL(glBufferData(GL_ARRAY_BUFFER, POSITION_COUNT * sizeof(float), positions, GL_STATIC_DRAW));
@@ -137,12 +137,23 @@ int main() {
     float r = 0;
     float increment = 0.05f;
 
+    //Unbind everything
+    GLCALL(glBindVertexArray(NULL));
+    GLCALL(glBindBuffer(GL_ARRAY_BUFFER, NULL));
+    GLCALL(glBindBuffer(GL_ARRAY_BUFFER, NULL));
+    GLCALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, NULL));
+
     //Loop until the user closes the window
     while (!glfwWindowShouldClose(window)) {
         //Render here
         GLCALL(glClear(GL_COLOR_BUFFER_BIT));
 
+        //Rebind everything
+        GLCALL(glUseProgram(shader));
         GLCALL(glUniform4f(uniColorLocation, r, 0.6f, 0.8f, 1));
+
+        GLCALL(glBindVertexArray(vao));
+        GLCALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
 
         //MODERN OpenGL! Issuing a draw call!
         GLCALL(glDrawElements(GL_TRIANGLES, INDEX_COUNT, GL_UNSIGNED_INT, NULL)); //REQUIRES an index buffer, and NULL for using the already-bound GL_ELEMENT_ARRAY_BUFFER slot.
