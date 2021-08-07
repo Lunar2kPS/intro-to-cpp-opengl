@@ -1,36 +1,22 @@
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
 
-using namespace std;
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
-//NOTE: Compiler instrinsic!! __debugbreak() is specific to MSVC!
-#define ASSERT(x) if (!(x)) __debugbreak();
-#define GLCALL(x) glClearError();\
-    x;\
-    ASSERT(glLogCall(#x, __FILE__, __LINE__))
+#include "IndexBuffer.h"
+#include "VertexArray.h"
+#include "VertexBuffer.h"
+#include "OpenGLUtil.h"
+
+using namespace std;
 
 struct ShaderProgramSource {
     string vertexSource;
     string fragmentSource;
 };
-
-void glClearError() {
-    while (glGetError() != GL_NO_ERROR);
-}
-
-bool glLogCall(const char* function, const char* file, int line) {
-    GLenum error;
-    while ((error = glGetError()) != GL_NO_ERROR) {
-        cout << "[OpenGL Error] (" << error << "):\n" << function << "\n" << file << ":" << line << endl;
-        return false;
-    }
-    return true;
-}
 
 /// <summary>
 /// An example of drawing a triangle using legacy OpenGL 1.0, which didn't require glew.
@@ -77,101 +63,84 @@ int main() {
 
     cout << "OpenGL Version: " << glGetString(GL_VERSION) << endl;
 
-    const int POSITION_COUNT = 8;
-    float positions[POSITION_COUNT] = {
-        0.5f,   -0.5f,
-        -0.5f,  -0.5f,
-        0.5f,   0.5f,
-        -0.5f,  0.5f
-    };
+    {
+        const int POSITION_COUNT = 8;
+        float positions[POSITION_COUNT] = {
+            0.5f,   -0.5f,
+            -0.5f,  -0.5f,
+            0.5f,   0.5f,
+            -0.5f,  0.5f
+        };
 
-    const int INDEX_COUNT = 6;
-    unsigned int indices[INDEX_COUNT] = {
-        0, 1, 2,
-        3, 2, 1
-    };
+        const int INDEX_COUNT = 6;
+        unsigned int indices[INDEX_COUNT] = {
+            0, 1, 2,
+            3, 2, 1
+        };
 
-    //vao = Vertex Arary Object
-    //Creating our VAO is required in OpenGL Core context, since the default is invalid, as opposed to a valid default in OpenGL Compatibility context.
-    unsigned int vao;
-    GLCALL(glGenVertexArrays(1, &vao));
-    GLCALL(glBindVertexArray(vao));
+        VertexArray va;
+        VertexBuffer vb = VertexBuffer(positions, POSITION_COUNT * sizeof(float));
+        VertexBufferLayout layout;
+        layout.push<float>(2);
+        va.addBuffer(vb, layout);
 
-    //vbo = Vertex Buffer Object
-    unsigned int vbo;
-    GLCALL(glGenBuffers(1, &vbo));
-    GLCALL(glBindBuffer(GL_ARRAY_BUFFER, vbo));
-    
-    //NOTE: glBindBuffer(...) MUST be called in order for this next line to WORK!
-    GLCALL(glBufferData(GL_ARRAY_BUFFER, POSITION_COUNT * sizeof(float), positions, GL_STATIC_DRAW));
+        IndexBuffer ib = IndexBuffer(indices, INDEX_COUNT);
 
-    //Call this PER vertex attribute
-    GLCALL(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), NULL));
-    GLCALL(glEnableVertexAttribArray(0));
+        ShaderProgramSource source = parseShader("res/shaders/Basic.glsl");
+        cout << "VERTEX SHADER:" << endl;
+        cout << source.vertexSource << endl;
+        cout << "FRAGMENT SHADER:" << endl;
+        cout << source.fragmentSource << endl;
 
-    unsigned int ibo;
-    GLCALL(glGenBuffers(1, &ibo));
-    GLCALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
-    GLCALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, INDEX_COUNT * sizeof(unsigned int), indices, GL_STATIC_DRAW));
-
-    //This would UNBIND the current buffer.
-    //Binding is like "selecting" stuff in Photoshop. You need to select stuff before you can do anything with it.
-    //glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    ShaderProgramSource source = parseShader("res/shaders/Basic.glsl");
-    cout << "VERTEX SHADER:" << endl;
-    cout << source.vertexSource << endl;
-    cout << "FRAGMENT SHADER:" << endl;
-    cout << source.fragmentSource << endl;
-
-    unsigned int shader = createShader(source.vertexSource, source.fragmentSource);
-    GLCALL(glUseProgram(shader));
-
-    //Demonstrating how to retrieve and set a shader uniform variable!
-    GLCALL(int uniColorLocation = glGetUniformLocation(shader, "uniColor"));
-
-    //This would happen if there was no "uniColor" uniform, OR it was stripped out of the shader since it was unused.
-    ASSERT(uniColorLocation != -1);
-
-    GLCALL(glUniform4f(uniColorLocation, 0.2f, 0.6f, 0.8f, 1));
-    float r = 0;
-    float increment = 0.05f;
-
-    //Unbind everything
-    GLCALL(glBindVertexArray(NULL));
-    GLCALL(glBindBuffer(GL_ARRAY_BUFFER, NULL));
-    GLCALL(glBindBuffer(GL_ARRAY_BUFFER, NULL));
-    GLCALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, NULL));
-
-    //Loop until the user closes the window
-    while (!glfwWindowShouldClose(window)) {
-        //Render here
-        GLCALL(glClear(GL_COLOR_BUFFER_BIT));
-
-        //Rebind everything
+        unsigned int shader = createShader(source.vertexSource, source.fragmentSource);
         GLCALL(glUseProgram(shader));
-        GLCALL(glUniform4f(uniColorLocation, r, 0.6f, 0.8f, 1));
 
-        GLCALL(glBindVertexArray(vao));
-        GLCALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+        //Demonstrating how to retrieve and set a shader uniform variable!
+        GLCALL(int uniColorLocation = glGetUniformLocation(shader, "uniColor"));
 
-        //MODERN OpenGL! Issuing a draw call!
-        GLCALL(glDrawElements(GL_TRIANGLES, INDEX_COUNT, GL_UNSIGNED_INT, NULL)); //REQUIRES an index buffer, and NULL for using the already-bound GL_ELEMENT_ARRAY_BUFFER slot.
+        //This would happen if there was no "uniColor" uniform, OR it was stripped out of the shader since it was unused.
+        ASSERT(uniColorLocation != -1);
 
-        if (r > 1)
-            increment = -0.05f;
-        else if (r < 0)
-            increment = 0.05f;
-        r += increment;
+        GLCALL(glUniform4f(uniColorLocation, 0.2f, 0.6f, 0.8f, 1));
+        float r = 0;
+        float increment = 0.05f;
 
-        //Swap front and back buffers
-        glfwSwapBuffers(window);
+        //Unbind everything
+        GLCALL(glBindVertexArray(NULL));
+        GLCALL(glBindBuffer(GL_ARRAY_BUFFER, NULL));
+        GLCALL(glBindBuffer(GL_ARRAY_BUFFER, NULL));
+        GLCALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, NULL));
 
-        //Poll for and process events
-        glfwPollEvents();
-    }
+        //Loop until the user closes the window
+        while (!glfwWindowShouldClose(window)) {
+            //Render here
+            GLCALL(glClear(GL_COLOR_BUFFER_BIT));
 
-    GLCALL(glDeleteProgram(shader));
+            //Rebind everything
+            GLCALL(glUseProgram(shader));
+            GLCALL(glUniform4f(uniColorLocation, r, 0.6f, 0.8f, 1));
+
+            va.bind();
+            ib.bind();
+
+            //MODERN OpenGL! Issuing a draw call!
+            GLCALL(glDrawElements(GL_TRIANGLES, INDEX_COUNT, GL_UNSIGNED_INT, NULL)); //REQUIRES an index buffer, and NULL for using the already-bound GL_ELEMENT_ARRAY_BUFFER slot.
+
+            if (r > 1)
+                increment = -0.05f;
+            else if (r < 0)
+                increment = 0.05f;
+            r += increment;
+
+            //Swap front and back buffers
+            glfwSwapBuffers(window);
+
+            //Poll for and process events
+            glfwPollEvents();
+        }
+
+        GLCALL(glDeleteProgram(shader));
+    } //Delete our stack-allocated data BEFORE terminating GLFW/OpenGL context, so everything we were using is cleaned up first.
 
     glfwTerminate();
     return 0;
