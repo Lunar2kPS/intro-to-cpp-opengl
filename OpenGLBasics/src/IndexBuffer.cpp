@@ -1,4 +1,4 @@
-#include "Renderer.h"
+#include "OpenGLUtil.h"
 #include "IndexBuffer.h"
 
 IndexBuffer::IndexBuffer(const unsigned int* data, unsigned int count) {

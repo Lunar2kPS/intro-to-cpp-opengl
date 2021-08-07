@@ -1,4 +1,4 @@
-#include "Renderer.h"
+#include "OpenGLUtil.h"
 #include "VertexBuffer.h"
 
 VertexBuffer::VertexBuffer(const void* data, unsigned int size) {

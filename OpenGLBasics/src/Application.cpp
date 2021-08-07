@@ -9,7 +9,7 @@
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "VertexBuffer.h"
-#include "Renderer.h"
+#include "OpenGLUtil.h"
 
 using namespace std;
 

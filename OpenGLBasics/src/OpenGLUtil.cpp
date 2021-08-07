@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "Renderer.h"
+#include "OpenGLUtil.h"
 
 using namespace std;
 
