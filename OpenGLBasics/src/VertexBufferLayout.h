@@ -4,7 +4,7 @@
 #include <GL/glew.h>
 #include "OpenGLUtil.h"
 
-using namespace std;
+using std::vector;
 
 struct VertexBufferAttribute {
     unsigned int type;

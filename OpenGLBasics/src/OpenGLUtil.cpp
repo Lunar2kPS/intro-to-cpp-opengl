@@ -2,7 +2,8 @@
 
 #include "OpenGLUtil.h"
 
-using namespace std;
+using std::cout;
+using std::endl;
 
 void glClearError() {
     while (glGetError() != GL_NO_ERROR);

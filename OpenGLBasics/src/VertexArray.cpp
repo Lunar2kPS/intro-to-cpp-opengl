@@ -2,8 +2,6 @@
 #include "VertexArray.h"
 #include "VertexBufferLayout.h"
 
-using namespace std;
-
 VertexArray::VertexArray() {
     GLCALL(glGenVertexArrays(1, &rendererId));
 }

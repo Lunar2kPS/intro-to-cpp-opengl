@@ -10,7 +10,8 @@
 #include "VertexBuffer.h"
 #include "OpenGLUtil.h"
 
-using namespace std;
+using std::cout;
+using std::endl;
 
 /// <summary>
 /// An example of drawing a triangle using legacy OpenGL 1.0, which didn't require glew.

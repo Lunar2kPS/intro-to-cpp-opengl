@@ -2,7 +2,7 @@
 
 #include <string>
 
-using namespace std;
+using std::string;
 
 struct ShaderProgramSource {
     string vertexSource;
