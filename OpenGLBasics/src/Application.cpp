@@ -6,9 +6,10 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "Renderer.h"
-#include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
+#include "VertexBuffer.h"
+#include "Renderer.h"
 
 using namespace std;
 
@@ -77,24 +78,13 @@ int main() {
             3, 2, 1
         };
 
-        //vao = Vertex Array Object
-        //Creating our VAO is required in OpenGL Core context, since the default is invalid, as opposed to a valid default in OpenGL Compatibility context.
-        unsigned int vao;
-        GLCALL(glGenVertexArrays(1, &vao));
-        GLCALL(glBindVertexArray(vao));
-
-        //vbo = Vertex Buffer Object
+        VertexArray va;
         VertexBuffer vb = VertexBuffer(positions, POSITION_COUNT * sizeof(float));
-
-        //Call this PER vertex attribute
-        GLCALL(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), NULL));
-        GLCALL(glEnableVertexAttribArray(0));
+        VertexBufferLayout layout;
+        layout.push<float>(2);
+        va.addBuffer(vb, layout);
 
         IndexBuffer ib = IndexBuffer(indices, INDEX_COUNT);
-
-        //This would UNBIND the current buffer.
-        //Binding is like "selecting" stuff in Photoshop. You need to select stuff before you can do anything with it.
-        //glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         ShaderProgramSource source = parseShader("res/shaders/Basic.glsl");
         cout << "VERTEX SHADER:" << endl;
@@ -130,7 +120,7 @@ int main() {
             GLCALL(glUseProgram(shader));
             GLCALL(glUniform4f(uniColorLocation, r, 0.6f, 0.8f, 1));
 
-            GLCALL(glBindVertexArray(vao));
+            va.bind();
             ib.bind();
 
             //MODERN OpenGL! Issuing a draw call!
