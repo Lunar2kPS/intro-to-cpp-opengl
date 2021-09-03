@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 
 #include "IndexBuffer.h"
+#include "Renderer.h"
 #include "Shader.h"
 #include "VertexArray.h"
 #include "VertexBuffer.h"
@@ -91,6 +92,8 @@ int main() {
         ib.unbind();
         shader.unbind();
 
+        Renderer renderer;
+
         //Loop until the user closes the window
         while (!glfwWindowShouldClose(window)) {
             //Render here
@@ -100,11 +103,7 @@ int main() {
             shader.bind();
             shader.setUniform4f("uniColor", r, 0.6f, 0.8f, 1);
 
-            va.bind();
-            ib.bind();
-
-            //MODERN OpenGL! Issuing a draw call!
-            GLCALL(glDrawElements(GL_TRIANGLES, INDEX_COUNT, GL_UNSIGNED_INT, NULL)); //REQUIRES an index buffer, and NULL for using the already-bound GL_ELEMENT_ARRAY_BUFFER slot.
+            renderer.draw(va, ib, shader);
 
             if (r > 1)
                 increment = -0.05f;
