@@ -9,7 +9,6 @@
 #include "Shader.h"
 #include "VertexArray.h"
 #include "VertexBuffer.h"
-#include "OpenGLUtil.h"
 
 using std::cout;
 using std::endl;
@@ -97,7 +96,7 @@ int main() {
         //Loop until the user closes the window
         while (!glfwWindowShouldClose(window)) {
             //Render here
-            GLCALL(glClear(GL_COLOR_BUFFER_BIT));
+            renderer.clear();
 
             //Rebind everything
             shader.bind();
